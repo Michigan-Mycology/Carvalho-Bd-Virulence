@@ -1,0 +1,316 @@
+---
+title: "Carvalhoetal_Bdmodel_statisticalanalyses"
+author: "Tamilie Carvalho"
+date: "2023-03-11"
+output: html_document
+---
+
+Loading required packages
+```{r}
+library(survival)
+library(survminer)
+library(ggplot2)
+```
+
+
+**Bd dosage response experiment**
+
+To import the data file
+```{r}
+d<-data.frame(read.csv("Bd_dosage_response.csv"))
+table(d$Treatment)
+```
+
+To compare survival curves across treatments
+```{r}
+# To create a survival object.
+surv1<-Surv(time = d$Mortality_day, event = d$Censor)
+
+# To fit a survival curves.
+surv2<-survfit(surv1 ~ Treatment, data = d)
+
+summary(surv2)$table
+```
+
+To compute a log-rank test.
+```{r}
+surv3<-survdiff(Surv(Mortality_day, Censor) ~ Treatment, data = d)
+surv3
+
+## To conduct pairwise comparisons.
+surv4<-pairwise_survdiff(Surv(Mortality_day, Censor)~Treatment, data = d)
+surv4
+```
+
+
+To plot survival curves.
+```{r}
+p <- ggsurvplot(surv2, data = d, 
+                 pval = TRUE, pval.size= 3.5, pval.coord = c(0.01, 0.01), 
+                 palette = c("#2CD9F0","#2CD9F0", "#756E6D","#D200E6","#D200E6"),
+                 pval.method = FALSE, surv.median.line = NULL, conf.int = FALSE, 
+                 legend = c(0.09, 0.26), font.legend = c(8),
+                 legend.labs=c("CLFT073_HD","CLFT073_LD","Control","JEL423_HD","JEL423_LD"),
+                 legend.title= "Treatment", font.x=c(12), font.y=c(12),
+                 font.tickslab=10, 
+                 linetype = c("strata"))+
+                 xlab("Days post-infection")
+         
+
+p<-p$plot + theme(plot.title = element_text(hjust = 0.5, size = 10))+
+            scale_linetype_manual(values = c(1,2,1,1,2))+
+            theme(axis.ticks =    element_line(size = 0.10), 
+            axis.ticks.length = unit(0.10, "cm"))
+p
+
+ggsave("Bddosage.png", p, height = 5, width = 7.5, dpi = 600)
+```
+
+
+To clean R
+```{r}
+a<-objects()
+rm(list = a)
+```
+
+**Model generalizability experiment**
+
+To import the data file.
+```{r}
+d<-data.frame(read.csv("Modelgeneralizability.csv"))
+
+table(d$Genotype)
+```
+
+
+To remove control group.
+```{r}
+d1<-data.frame(subset(d, Genotype=="CLFT137" | Genotype== "CLFT150" | Genotype=="CLFT142" | Genotype=="CLFT024-02" | Genotype=="CLFT156" | Genotype=="CLFT039")) 
+
+d1<-droplevels(d1) 
+
+table(d1$Genotype)
+```
+
+To create a survival object.
+```{r}
+surv1<-Surv(time = d1$Mortality_day, event = d1$Censor)
+
+# To fit a survival curves for genotypes.
+surv2g<-survfit(surv1 ~ Genotype, data = d1)
+summary(surv2g)$table
+
+surv3g<-survdiff(Surv(Mortality_day, Censor) ~ Genotype, data = d1)
+surv3g
+```
+
+
+To conduct pairwise comparisons across genotypes.
+```{r}
+surv4g<-pairwise_survdiff(Surv(Mortality_day, Censor)~Genotype, data = d1)
+surv4g
+```
+
+
+To plot survival curves for genotypes.
+```{r}
+p <- ggsurvplot(surv2g, data = d1, 
+                 pval = TRUE, pval.size= 3.5, pval.coord = c(0.03, 0.01), 
+                 palette = c("#DECD18","#DECD18","#1819E0","#019302","#019302","#1819E0"),
+                 pval.method = FALSE, surv.median.line = NULL, conf.int = FALSE, 
+                 legend = c(0.12, 0.34), font.legend = c(8),
+                 legend.labs=c("CLFT039","CLFT024-02","CLFT137","CLFT142","CLFT150", "CLFT156"),
+                 legend.title= "Genotype", font.x=c(12), font.y=c(12),
+                 font.tickslab=10, 
+                 linetype = c("strata"))+
+                 xlab("Days post-infection")
+         
+
+p<-p$plot + theme(plot.title = element_text(hjust = 0.5, size = 10))+
+            scale_linetype_manual(values = c(1,2,1,1,2,2))+
+            theme(axis.ticks =    element_line(size = 0.10), 
+            axis.ticks.length = unit(0.10, "cm"))
+p
+
+ggsave("Genotypes2.png", p, height = 4, width = 7.5, dpi = 600)
+
+```
+
+
+
+To fit a survival curves for lineages
+```{r}
+surv2l<-survfit(surv1 ~ Lineage, data = d1)
+summary(surv2l)$table
+
+surv3l<-survdiff(Surv(Mortality_day, Censor) ~ Lineage, data = d1)
+surv3l
+```
+
+
+To conduct pairwise comparisons across lineages.
+```{r}
+surv4l<-pairwise_survdiff(Surv(Mortality_day, Censor)~Lineage, data = d1)
+surv4l
+```
+
+To plot survival curves for lineages.
+```{r}
+
+p <- ggsurvplot(surv2l, data = d1,
+            pval = TRUE, pval.size= 3.5, pval.coord = c(0.01, 0.01),
+            palette = c("#019302","#1819E0", "#DECD18"),
+            pval.method = FALSE, surv.median.line = NULL, 
+            legend = c(0.12, 0.34),font.legend = c(8), 
+            legend.title= "Lineage",legend.labs=c("Bd-Asia-2/Brazil","Bd-GPL","Hybrid"), 
+            font.tickslab=10,
+            conf.int = FALSE, font.x=c(12), font.y=c(12))+
+            xlab("Days post-infection")
+
+
+p<-p$plot + theme(plot.title = element_text(hjust = 0.5, size = 10))+
+            theme(axis.ticks =    element_line(size = 0.10), 
+            axis.ticks.length = unit(0.10, "cm"))
+p
+
+ggsave("Lineage.png", p, height = 4, width = 7.5, dpi = 600)
+```
+
+
+
+To clean R
+```{r}
+a<-objects()
+rm(list = a)
+```
+
+
+**validation experiment**
+
+Part 1 - Survival curves - To compare survival curves  results between model generalizability and validation experiments
+
+To import the data file.
+```{r}
+dve<-data.frame(read.csv("Validation.csv"))
+table(dve$Genotype_experiment)
+```
+
+
+To remove control group.
+```{r}
+dve<-data.frame(subset(dve, Genotype_experiment=="CLFT150_MG" | Genotype_experiment=="CLFT039_MG"  | Genotype_experiment=="CLFT150_V"  | Genotype_experiment=="CLFT039_V")) 
+
+dve<-droplevels(dve) 
+
+table(dve$Genotype_experiment)
+````
+
+
+To compare survival curves across treatments (genotypes/exp)
+```{r}
+# To create a survival object.
+surv1<-Surv(time = dve$Mortality_day, event = dve$Censor)
+
+# To fit a survival curves.
+surv2ve<-survfit(surv1 ~ Genotype_experiment, data = dve)
+
+summary(surv2ve)$table
+```
+
+To compute a log-rank test.
+```{r}
+surv3<-survdiff(Surv(Mortality_day, Censor) ~ Genotype_experiment, data = dve)
+surv3
+
+## To conduct pairwise comparisons.
+surv4<-pairwise_survdiff(Surv(Mortality_day, Censor)~Genotype_experiment, data = dve)
+surv4
+```
+
+
+To plot survival curves.
+```{r}
+p <- ggsurvplot(surv2ve, data = dve, 
+                 pval = TRUE, pval.size= 3.5, pval.coord = c(0.03, 0.01), 
+                 palette = c("#DECD18","#DECD18","#019302","#019302"),
+                 pval.method = FALSE, surv.median.line = NULL, conf.int = FALSE, 
+                 legend = c(0.12, 0.34), font.legend = c(8),
+                 legend.labs=c("CLFT039_MG","CLFT039_V","CLFT150_MG","CLFT150_V"),
+                 legend.title= "Genotype", font.x=c(12), font.y=c(12),
+                 font.tickslab=10, 
+                 linetype = c("strata"))+
+                 xlab("Days post-infection")
+         
+
+p<-p$plot + theme(plot.title = element_text(hjust = 0.5, size = 10))+
+            scale_linetype_manual(values = c(1,2,1,2))+
+            theme(axis.ticks =    element_line(size = 0.10), 
+            axis.ticks.length = unit(0.10, "cm"))
+p
+
+ggsave("EXP1+EXP2.png", p, height = 4, width = 7.5, dpi = 600)
+````
+
+
+Part 2 - Bd Load - To compare Bd load results between model generalizability and validation experiments
+
+```{r}
+library(RVAideMemoire) 
+library(ggplot2)
+library(multcomp)
+library(rstatix)
+library(car)
+```
+
+Data normality verification  
+```{r}
+dve$Genotype_experiment<-as.factor(dve$Genotype_experiment)
+dve$Lineage<-as.factor(dve$Lineage)
+dve["LogBdLoad"]<-c(log10(dve$Bd_Load))
+str(dve)
+head(dve)
+
+shapiro_test(dve$LogBdLoad)
+byf.shapiro(LogBdLoad ~ Genotype_experiment, dve) #Shapiro per group
+leveneTest(LogBdLoad ~ Genotype_experiment, dve, center=mean)
+boxplot(LogBdLoad ~ Genotype_experiment, data = dve, ylab="Bd_load", xlab="Genotype")
+```
+
+To run anova
+```{r}
+anova_Bdload <- aov(LogBdLoad ~ Genotype_experiment, dve)
+summary(anova_Bdload)
+plot(anova_Bdload)
+
+# To compute a posthoc test 
+posthocBdload<-glht(anova_Bdload, linfct=mcp(Genotype_experiment="Tukey"))
+summary(posthocBdload)
+```
+
+To plot Boxplot
+```{r}
+cols <- c( "#019302","#DECD18")
+
+g<-ggplot(dve, aes(x = Genotype_experiment, y = Bd_Load, fill = Lineage)) + 
+  stat_boxplot(geom = "errorbar",
+               width = 0.25) + 
+  geom_boxplot(alpha = 1,          # Fill transparency
+               colour = "#000000",   # Border color
+               outlier.colour = 1) + # Outlier color
+  scale_fill_manual(values = cols) +
+  theme(axis.ticks =  element_line(size = 0.10), 
+      axis.ticks.length = unit(0.10, "cm"))
+
+boxplot<-g + theme_classic()
+
+boxplot
+
+ggsave("boxplot.png", boxplot, height = 4, width = 7.5, dpi = 600)
+```
+
+
+
+
+
+
+
