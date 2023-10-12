@@ -1,6 +1,8 @@
 # Carvalho-Bd-Virulence
 Data sets and code for Carvalho et al. Amphibian Hymenochirus boettgeri as an experimental model for infection studies with the chytrid fungus Batrachochytrium dendrobatidis
 
+[![DOI](https://zenodo.org/badge/703987640.svg)](https://zenodo.org/badge/latestdoi/703987640)
+
 This readme file was generated on 2023-06-01 by Tamilie Carvalho
 
 GENERAL INFORMATION
